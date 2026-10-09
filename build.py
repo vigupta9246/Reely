@@ -52,14 +52,14 @@ def layout(title, desc, body, fname):
     return f'''<!DOCTYPE html>
 <html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{e(title)}</title><meta name="description" content="{e(desc)}">
-<link rel="canonical" href="{SITE_URL}/{fname}"><link rel="stylesheet" href="style.css">
+<link rel="canonical" href="{SITE_URL}/{fname}"><link rel="icon" type="image/png" href="favicon.png"><link rel="stylesheet" href="style.css">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;800&family=Source+Serif+4:wght@400;600&display=swap" rel="stylesheet">
 {ad}</head><body>
-<header><div class="wrap bar"><a class="logo" href="index.html">{e(SITE_NAME)}</a>
+<header><div class="wrap bar"><a class="logo" href="index.html"><img src="favicon.png" width="40" height="40" alt="">{e(SITE_NAME)}</a>
 <input type="checkbox" id="mn"><label for="mn" class="burger" aria-label="Menu">Menu</label><nav>{nav}</nav></div></header>
 <main class="wrap">{body}</main>
-<footer><div class="wrap"><p>&copy; {YEAR} {e(SITE_NAME)}. Ye site sirf filmon ki jaankari deti hai. Hum koi film download ya pirated link nahi dete.</p>
+<footer><div class="wrap"><img class="flogo" src="logo.png" alt="{e(SITE_NAME)} logo" width="90" height="87"><p>&copy; {YEAR} {e(SITE_NAME)}. Ye site sirf filmon ki jaankari deti hai. Hum koi film download ya pirated link nahi dete.</p>
 <p><a href="about.html">About Us</a> <a href="contact.html">Contact Us</a> <a href="privacy-policy.html">Privacy Policy</a> <a href="disclaimer.html">Disclaimer</a> <a href="terms.html">Terms</a></p></div></footer></body></html>'''
 
 pages = {}
