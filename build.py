@@ -1,11 +1,18 @@
 # -*- coding: utf-8 -*-
 # Run: python build.py  -> regenerates all HTML pages. Edit SITE settings and MOVIES/UPCOMING/OTT below.
-import os, html, urllib.parse
+import os, html, json, urllib.parse
 SITE_NAME = "Reely"
 SITE_URL = "https://YOUR-DOMAIN.com"      # domain milne ke baad yahan badlo
 EMAIL = "your-email@example.com"           # apna email likho
 ADSENSE = ""                               # e.g. "ca-pub-1234567890123456" (approval ke baad)
 YEAR = 2026
+# Apne social media links yahan daalo. Khali "" chhodoge to us ka icon chhup jayega.
+SOCIAL = {"Instagram":"https://instagram.com/","YouTube":"https://youtube.com/","Facebook":"https://facebook.com/","X":"https://x.com/"}
+ICONS = {
+"Instagram":'<svg viewBox="0 0 24 24" width="20" height="20"><rect x="3" y="3" width="18" height="18" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="17.5" cy="6.5" r="1.3" fill="currentColor"/></svg>',
+"YouTube":'<svg viewBox="0 0 24 24" width="20" height="20"><rect x="2" y="5" width="20" height="14" rx="4.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M10 9l5 3-5 3z" fill="currentColor"/></svg>',
+"Facebook":'<svg viewBox="0 0 24 24" width="20" height="20"><path d="M14 8h3V4h-3a4 4 0 0 0-4 4v2H7v4h3v8h4v-8h3l1-4h-4V8z" fill="currentColor"/></svg>',
+"X":'<svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 4l16 16M20 4L4 20" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>'}
 
 # id, title, year, industry, genres, director, summary(apne words), verdict
 MOVIES = [
@@ -39,7 +46,7 @@ def e(s): return html.escape(str(s))
 def yt(t): return "https://www.youtube.com/results?search_query="+urllib.parse.quote(t+" official trailer")
 def poster(m):
     h=HUES[sum(map(ord,m[0]))%len(HUES)]
-    return f'<div class="poster" style="--h:{h}"><span>{e(m[1])}</span><small>{m[2]}</small></div>'
+    return f'<div class="poster" style="--h:{h}"><i class="tag">{e(m[4][0])}</i><span>{e(m[1])}</span><small>{m[2]}</small></div>'
 def card(m):
     return f'<a class="card" href="movie-{m[0]}.html">{poster(m)}<b>{e(m[1])}</b><em>{e(m[3])} &middot; {e(", ".join(m[4]))}</em></a>'
 
@@ -49,35 +56,52 @@ def layout(title, desc, body, fname):
     main_nav = "".join(f'<a href="{k}.html">{names[k]}</a>' for k in ["top-movies","hollywood","bollywood","upcoming","ott"])
     more = "".join(f'<a href="{k}.html">{names[k]}</a>' for k in ["horror","action","romance"])
     nav = main_nav + f'<details class="more"><summary>Aur Genres</summary><div>{more}</div></details>'
+    hero = HERO if fname=="index.html" else ""
+    soc = "".join(f'<a href="{u}" target="_blank" rel="noopener" aria-label="{n}">{ICONS[n]}</a>' for n,u in SOCIAL.items() if u)
     return f'''<!DOCTYPE html>
 <html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{e(title)}</title><meta name="description" content="{e(desc)}">
 <link rel="canonical" href="{SITE_URL}/{fname}"><link rel="icon" type="image/png" href="favicon.png"><link rel="stylesheet" href="style.css">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;800&family=Source+Serif+4:wght@400;600&display=swap" rel="stylesheet">
+<script src="site.js" defer></script>
 {ad}</head><body>
 <header><div class="wrap bar"><a class="logo" href="index.html"><img src="favicon.png" width="40" height="40" alt="">{e(SITE_NAME)}</a>
 <input type="checkbox" id="mn"><label for="mn" class="burger" aria-label="Menu">Menu</label><nav>{nav}</nav></div></header>
-<main class="wrap">{body}</main>
-<footer><div class="wrap"><img class="flogo" src="logo.png" alt="{e(SITE_NAME)} logo" width="90" height="87"><p>&copy; {YEAR} {e(SITE_NAME)}. Ye site sirf filmon ki jaankari deti hai. Hum koi film download ya pirated link nahi dete.</p>
+{hero}<main class="wrap">{body}</main>
+<footer><div class="wrap"><img class="flogo" src="logo.png" alt="{e(SITE_NAME)} logo" width="90" height="87"><div class="soc">{soc}</div><p>&copy; {YEAR} {e(SITE_NAME)}. Ye site sirf filmon ki jaankari deti hai. Hum koi film download ya pirated link nahi dete.</p>
 <p><a href="about.html">About Us</a> <a href="contact.html">Contact Us</a> <a href="privacy-policy.html">Privacy Policy</a> <a href="disclaimer.html">Disclaimer</a> <a href="terms.html">Terms</a></p></div></footer></body></html>'''
 
+SITEJS = r"""
+const io=new IntersectionObserver(es=>es.forEach(x=>{if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target)}}),{threshold:.1});
+document.querySelectorAll('.card,.film,.tile').forEach((el,i)=>{el.classList.add('rv');el.style.transitionDelay=(i%6)*60+'ms';io.observe(el)});
+const hd=document.querySelector('header');addEventListener('scroll',()=>hd.classList.toggle('sm',scrollY>30),{passive:true});
+const q=document.getElementById('q'),box=document.getElementById('res');
+if(q){q.addEventListener('input',()=>{const v=q.value.trim().toLowerCase();if(!v){box.innerHTML='';return}
+const r=IDX.filter(m=>(m.t+' '+m.g+' '+m.i).toLowerCase().includes(v)).slice(0,6);
+box.innerHTML=r.length?r.map(m=>'<a href="movie-'+m.id+'.html"><b>'+m.t+'</b> <small>'+m.y+' &middot; '+m.i+'</small></a>').join(''):'<a>Kuch nahi mila</a>'})}
+"""
 pages = {}
-def section(title, ms, more=None):
-    g = "".join(card(m) for m in ms) or '<p class="empty">Is section mein jald hi filmein judengi.</p>'
-    return f'<section><h2>{e(title)}</h2><div class="grid">{g}</div></section>'
+def section(title, ms, link=None):
+    g = "".join(card(m) for m in ms)
+    more = f'<a href="{link}">Sab dekhein</a>' if link else ""
+    return f'<section><div class="sh"><h2>{e(title)}</h2>{more}</div><div class="row">{g}</div></section>'
 def has(m,g): return g in m[4]
 
 filters = {"top-movies":lambda m:True,"horror":lambda m:has(m,"Horror"),"action":lambda m:has(m,"Action"),
  "romance":lambda m:has(m,"Romance"),"hollywood":lambda m:m[3]=="Hollywood","bollywood":lambda m:m[3]=="Bollywood"}
 
 # Home
-home = f'''<section class="hero"><h1>Filmon ki saaf, seedhi jaankari</h1>
-<p>Top movies, horror, action, romance, Hollywood aur Bollywood. Upcoming aur OTT release ki khabar, har film par hamari apni raay.</p></section>'''
-home += section("Top Movies", MOVIES[:8])
-home += section("Bollywood", [m for m in MOVIES if m[3]=="Bollywood"][:4])
-home += section("Hollywood", [m for m in MOVIES if m[3]=="Hollywood"][:4])
-home += '<section><h2>Upcoming aur OTT</h2><p><a class="btn" href="upcoming.html">Upcoming movies</a> <a class="btn" href="ott.html">OTT release</a></p></section>'
+tick = "".join(f"<span>{e(m[1])} <small>{m[2]}</small></span>" for m in MOVIES)
+HERO = f'''<section class="hero"><div class="wrap hero-in"><h1>Aaj raat kaunsi film dekhein?</h1>
+<p>Hollywood aur Bollywood ki filmon ke saaf review, upcoming list aur OTT release, sab ek jagah.</p>
+<div class="sr"><input id="q" type="search" placeholder="Film ya genre khojein, jaise Horror" autocomplete="off" aria-label="Film khojein"><div id="res"></div></div>
+<p class="chips"><a href="horror.html">Horror</a><a href="action.html">Action</a><a href="romance.html">Romance</a><a href="upcoming.html">Upcoming</a></p></div></section>
+<div class="tick" aria-hidden="true"><div class="tk">{tick}{tick}</div></div>'''
+home = section("Top Movies", MOVIES[:8], "top-movies.html")
+home += section("Bollywood", [m for m in MOVIES if m[3]=="Bollywood"], "bollywood.html")
+home += section("Hollywood", [m for m in MOVIES if m[3]=="Hollywood"], "hollywood.html")
+home += '<section class="tiles"><a class="tile t1" href="upcoming.html"><b>Upcoming</b><span>Aane wali filmein</span></a><a class="tile t2" href="ott.html"><b>OTT Release</b><span>OTT par aa rahi filmein</span></a></section>'
 pages["index.html"]=(f"{SITE_NAME} - Movie Reviews, Upcoming aur OTT Release","Hindi mein top movies, horror, action, romance, Hollywood, Bollywood, upcoming aur OTT release ki jaankari.",home)
 
 for slug,name,sub in CATS:
@@ -111,6 +135,8 @@ pages["404.html"]=("Page nahi mila - "+SITE_NAME,"404","<h1>Page nahi mila</h1><
 for f,(t,d,b) in pages.items():
     open(f,"w",encoding="utf-8").write(layout(t,d,b,f))
 
+idx=json.dumps([{"id":m[0],"t":m[1],"y":m[2],"i":m[3],"g":" ".join(m[4])} for m in MOVIES],ensure_ascii=False)
+open("site.js","w",encoding="utf-8").write("const IDX="+idx+";\n"+SITEJS)
 open("sitemap.xml","w").write('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+"".join(f"<url><loc>{SITE_URL}/{f}</loc></url>" for f in pages if f!="404.html")+"</urlset>")
 open("robots.txt","w").write(f"User-agent: *\nAllow: /\nSitemap: {SITE_URL}/sitemap.xml\n")
 print(len(pages),"pages ban gaye")
