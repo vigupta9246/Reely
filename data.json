@@ -1,0 +1,210 @@
+{
+ "movies": [
+  {
+   "id": "inception",
+   "title": "Inception",
+   "year": 2010,
+   "industry": "Hollywood",
+   "genres": [
+    "Action",
+    "Sci-Fi"
+   ],
+   "director": "Christopher Nolan",
+   "summary": "Ek chor sapno ke andar ghus kar logon ke vichar churata hai. Is baar use vichar churane nahi, daalne ka kaam milta hai. Kahani parat-dar-parat sapno mein chalti hai.",
+   "verdict": "Dimaag lagane wali, lekin dekhne mein poori tarah romanchak film."
+  },
+  {
+   "id": "the-dark-knight",
+   "title": "The Dark Knight",
+   "year": 2008,
+   "industry": "Hollywood",
+   "genres": [
+    "Action",
+    "Crime"
+   ],
+   "director": "Christopher Nolan",
+   "summary": "Batman, Gotham ka police wala aur ek naya district attorney milkar shehar ke apradh ko todne nikalte hain, tabhi Joker aakar sab kuch ulat deta hai.",
+   "verdict": "Superhero film se zyada ek gambhir crime thriller. Joker ka kirdaar yaadgaar hai."
+  },
+  {
+   "id": "mad-max-fury-road",
+   "title": "Mad Max: Fury Road",
+   "year": 2015,
+   "industry": "Hollywood",
+   "genres": [
+    "Action"
+   ],
+   "director": "George Miller",
+   "summary": "Registan mein ek zalim shasak se bhaagti auraton ko max aur furiosa bachate hain. Poori film ek lambi car chase jaisi hai.",
+   "verdict": "Shuru se aakhir tak tez raftaar action, kam dialogue aur zabardast stunts."
+  },
+  {
+   "id": "get-out",
+   "title": "Get Out",
+   "year": 2017,
+   "industry": "Hollywood",
+   "genres": [
+    "Horror",
+    "Thriller"
+   ],
+   "director": "Jordan Peele",
+   "summary": "Ek naujawan apni girlfriend ke parivar se milne jaata hai aur dheere-dheere samajhta hai ki wahan kuch gadbad hai.",
+   "verdict": "Darr aur samajik tippani ka behtareen mel. Ant tak utsukta bani rehti hai."
+  },
+  {
+   "id": "the-conjuring",
+   "title": "The Conjuring",
+   "year": 2013,
+   "industry": "Hollywood",
+   "genres": [
+    "Horror"
+   ],
+   "director": "James Wan",
+   "summary": "Ek parivar ko apne naye ghar mein ajeeb ghatnayein hoti hain aur wo do paranormal investigators se madad maangte hain.",
+   "verdict": "Seedhi-saadi bhoot-pret kahani jo mahaul ke dum par daraati hai."
+  },
+  {
+   "id": "hereditary",
+   "title": "Hereditary",
+   "year": 2018,
+   "industry": "Hollywood",
+   "genres": [
+    "Horror"
+   ],
+   "director": "Ari Aster",
+   "summary": "Ek parivar apni dadi ke guzarne ke baad ek ke baad ek bhayanak ghatnaon ka saamna karta hai.",
+   "verdict": "Dheemi lekin bechain kar dene wali. Kamzor dil walon ke liye nahi."
+  },
+  {
+   "id": "titanic",
+   "title": "Titanic",
+   "year": 1997,
+   "industry": "Hollywood",
+   "genres": [
+    "Romance",
+    "Drama"
+   ],
+   "director": "James Cameron",
+   "summary": "Ek jahaaz ke pehle safar mein alag-alag tabqe ke do log pyaar kar baithte hain, jabki jahaaz ka anjaam kareeb aa raha hota hai.",
+   "verdict": "Bade star-scale par bani amar prem kahani."
+  },
+  {
+   "id": "the-notebook",
+   "title": "The Notebook",
+   "year": 2004,
+   "industry": "Hollywood",
+   "genres": [
+    "Romance",
+    "Drama"
+   ],
+   "director": "Nick Cassavetes",
+   "summary": "Ek buzurg ek mahila ko ek purani prem kahani padh kar sunata hai jo do jawan logon ke pyaar aur doori ki hai.",
+   "verdict": "Bhavuk romantic drama, rone ke liye tissue paas rakhein."
+  },
+  {
+   "id": "dilwale-dulhania-le-jayenge",
+   "title": "Dilwale Dulhania Le Jayenge",
+   "year": 1995,
+   "industry": "Bollywood",
+   "genres": [
+    "Romance"
+   ],
+   "director": "Aditya Chopra",
+   "summary": "Europe ki yatra par do yuva mil kar pyaar kar baithte hain, lekin ladki ka parivar use pehle se kisi aur ke saath tay kar chuka hai.",
+   "verdict": "Bollywood romance ka sabse bada naam, aaj bhi taaza lagti hai."
+  },
+  {
+   "id": "jab-we-met",
+   "title": "Jab We Met",
+   "year": 2007,
+   "industry": "Bollywood",
+   "genres": [
+    "Romance",
+    "Comedy"
+   ],
+   "director": "Imtiaz Ali",
+   "summary": "Ek udaas business-man train mein ek bolti hui ladki se milta hai aur uski zindagi badalne lagti hai.",
+   "verdict": "Halki-phulki, hansi aur dil ko chhoone wali romantic comedy."
+  },
+  {
+   "id": "3-idiots",
+   "title": "3 Idiots",
+   "year": 2009,
+   "industry": "Bollywood",
+   "genres": [
+    "Comedy",
+    "Drama"
+   ],
+   "director": "Rajkumar Hirani",
+   "summary": "Engineering college ke teen doston ki kahani, jo padhai ke dabav aur asli sapno ke beech sawal uthati hai.",
+   "verdict": "Hansate hansate zaroori baat kehne wali film."
+  },
+  {
+   "id": "dangal",
+   "title": "Dangal",
+   "year": 2016,
+   "industry": "Bollywood",
+   "genres": [
+    "Drama",
+    "Sports"
+   ],
+   "director": "Nitesh Tiwari",
+   "summary": "Ek purva pehalwan apni betiyon ko kushti ke champion banane ke liye kadi mehnat karwata hai.",
+   "verdict": "Prerak, bhavuk aur dekhne layak."
+  },
+  {
+   "id": "tumbbad",
+   "title": "Tumbbad",
+   "year": 2018,
+   "industry": "Bollywood",
+   "genres": [
+    "Horror",
+    "Fantasy"
+   ],
+   "director": "Rahi Anil Barve",
+   "summary": "Ek gaon ke purane khazane ki laalach ek aadmi ko ek khatarnak devta tak le jaati hai.",
+   "verdict": "Alag mizaaj ki Hindi horror, drishyon aur vatavaran mein bahut dum."
+  },
+  {
+   "id": "war",
+   "title": "War",
+   "year": 2019,
+   "industry": "Bollywood",
+   "genres": [
+    "Action",
+    "Thriller"
+   ],
+   "director": "Siddharth Anand",
+   "summary": "Ek agent ko apne hi guru ko pakadne ka kaam milta hai, jo ab baaghi ban chuka hai.",
+   "verdict": "Stylish stunts aur videshi locations wali masala action film."
+  },
+  {
+   "id": "andhadhun",
+   "title": "Andhadhun",
+   "year": 2018,
+   "industry": "Bollywood",
+   "genres": [
+    "Thriller",
+    "Comedy"
+   ],
+   "director": "Sriram Raghavan",
+   "summary": "Ek pianist jo khud ko andha dikhata hai, ek murder ka gawah ban jaata hai.",
+   "verdict": "Mod-dar-mod wali dark comedy thriller."
+  },
+  {
+   "id": "gangs-of-wasseypur",
+   "title": "Gangs of Wasseypur",
+   "year": 2012,
+   "industry": "Bollywood",
+   "genres": [
+    "Action",
+    "Crime"
+   ],
+   "director": "Anurag Kashyap",
+   "summary": "Dhanbad ke koyla maafia ke teen peedhiyon ke dushmani ki lambi kahani.",
+   "verdict": "Kachchi aur asli crime saga, bahut yaadgaar dialogue."
+  }
+ ],
+ "upcoming": [],
+ "ott": []
+}

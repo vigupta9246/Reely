@@ -1,10 +1,10 @@
-const IDX=[{"id": "inception", "t": "Inception", "y": 2010, "i": "Hollywood", "g": "Action Sci-Fi"}, {"id": "the-dark-knight", "t": "The Dark Knight", "y": 2008, "i": "Hollywood", "g": "Action Crime"}, {"id": "mad-max-fury-road", "t": "Mad Max: Fury Road", "y": 2015, "i": "Hollywood", "g": "Action"}, {"id": "get-out", "t": "Get Out", "y": 2017, "i": "Hollywood", "g": "Horror Thriller"}, {"id": "the-conjuring", "t": "The Conjuring", "y": 2013, "i": "Hollywood", "g": "Horror"}, {"id": "hereditary", "t": "Hereditary", "y": 2018, "i": "Hollywood", "g": "Horror"}, {"id": "titanic", "t": "Titanic", "y": 1997, "i": "Hollywood", "g": "Romance Drama"}, {"id": "the-notebook", "t": "The Notebook", "y": 2004, "i": "Hollywood", "g": "Romance Drama"}, {"id": "dilwale-dulhania-le-jayenge", "t": "Dilwale Dulhania Le Jayenge", "y": 1995, "i": "Bollywood", "g": "Romance"}, {"id": "jab-we-met", "t": "Jab We Met", "y": 2007, "i": "Bollywood", "g": "Romance Comedy"}, {"id": "3-idiots", "t": "3 Idiots", "y": 2009, "i": "Bollywood", "g": "Comedy Drama"}, {"id": "dangal", "t": "Dangal", "y": 2016, "i": "Bollywood", "g": "Drama Sports"}, {"id": "tumbbad", "t": "Tumbbad", "y": 2018, "i": "Bollywood", "g": "Horror Fantasy"}, {"id": "war", "t": "War", "y": 2019, "i": "Bollywood", "g": "Action Thriller"}, {"id": "andhadhun", "t": "Andhadhun", "y": 2018, "i": "Bollywood", "g": "Thriller Comedy"}, {"id": "gangs-of-wasseypur", "t": "Gangs of Wasseypur", "y": 2012, "i": "Bollywood", "g": "Action Crime"}];
 
+let IDX=null;const IMGB='';const loadIdx=()=>IDX?Promise.resolve(IDX):fetch('search.json').then(r=>r.json()).then(d=>(IDX=d));
 const io=new IntersectionObserver(es=>es.forEach(x=>{if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target)}}),{threshold:.1});
 document.querySelectorAll('.card,.film,.tile').forEach((el,i)=>{el.classList.add('rv');el.style.transitionDelay=(i%6)*60+'ms';io.observe(el)});
 const hd=document.querySelector('header');addEventListener('scroll',()=>hd.classList.toggle('sm',scrollY>30),{passive:true});
 const q=document.getElementById('q'),box=document.getElementById('res');
-if(q){q.addEventListener('input',()=>{const v=q.value.trim().toLowerCase();if(!v){box.innerHTML='';return}
+if(q){q.addEventListener('focus',loadIdx);q.addEventListener('input',()=>{const v=q.value.trim().toLowerCase();if(!v){box.innerHTML='';return}if(!IDX){loadIdx().then(()=>q.dispatchEvent(new Event('input')));return}
 const r=IDX.filter(m=>(m.t+' '+m.g+' '+m.i).toLowerCase().includes(v)).slice(0,6);
 box.innerHTML=r.length?r.map(m=>'<a href="movie-'+m.id+'.html"><b>'+m.t+'</b> <small>'+m.y+' &middot; '+m.i+'</small></a>').join(''):'<a>Kuch nahi mila</a>'})}
 const ck=document.getElementById('ck');
@@ -23,9 +23,9 @@ function wui(){const a=wget(),c=document.getElementById('wlc');if(c)c.textConten
 document.querySelectorAll('.wlb').forEach(b=>{const on=a.includes(b.dataset.id);b.classList.toggle('on',on);b.textContent=on?'Watchlist mein hai':'Baad mein dekhunga';b.setAttribute('aria-pressed',on)})}
 document.querySelectorAll('.wlb').forEach(b=>b.onclick=()=>{const a=wget(),i=a.indexOf(b.dataset.id);i<0?a.push(b.dataset.id):a.splice(i,1);wset(a)});
 const H=[200,350,28,160,265,45,320,95],wg=document.getElementById('wl-grid');
-function wrender(){if(!wg)return;const ms=wget().map(id=>IDX.find(m=>m.id===id)).filter(Boolean);
+function wrender(){if(!wg)return;if(!IDX){loadIdx().then(wrender);return}const ms=wget().map(id=>IDX.find(m=>m.id===id)).filter(Boolean);
 wg.innerHTML=ms.map(m=>{const h=H[[...m.id].reduce((s,c)=>s+c.charCodeAt(0),0)%8],g=m.g.split(' ')[0];
-return '<div><a class="card" href="movie-'+m.id+'.html"><div class="poster" style="--h:'+h+'"><i class="tag">'+g+'</i><span>'+m.t+'</span><small>'+m.y+'</small></div><b>'+m.t+'</b><em>'+m.i+'</em></a><button class="rm" type="button" data-id="'+m.id+'">Hatayein</button></div>'}).join('');
+return '<div><a class="card" href="movie-'+m.id+'.html"><div class="poster'+(m.p?' has-img':'')+'" style="--h:'+h+'">'+(m.p?'<img src="'+IMGB+'img/posters/'+m.id+'.webp" alt="" width="400" height="600" loading="lazy">':'')+'<i class="tag">'+g+'</i><span>'+m.t+'</span><small>'+m.y+'</small></div><b>'+m.t+'</b><em>'+m.i+'</em></a><button class="rm" type="button" data-id="'+m.id+'">Hatayein</button></div>'}).join('');
 document.getElementById('wl-empty').hidden=ms.length>0;
 wg.querySelectorAll('.rm').forEach(b=>b.onclick=()=>{wset(wget().filter(x=>x!==b.dataset.id));wrender()})}
 wui();wrender();

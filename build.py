@@ -1,6 +1,10 @@
 # -*- coding: utf-8 -*-
 # Run: python build.py  -> regenerates all HTML pages. Edit SITE settings and MOVIES/UPCOMING/OTT below.
-import os, html, json, urllib.parse
+import os, re, shutil, html, json, urllib.parse
+SRC = os.path.dirname(os.path.abspath(__file__)); os.chdir(SRC)
+OUT = os.environ.get("OUT", ".")
+PER = int(os.environ.get("PER", "24"))     # ek page par kitni filmein (category pages)
+IMG_BASE = ""                              # CDN lagane par: "https://cdn.jsdelivr.net/gh/USERNAME/REPO@main/"
 SITE_NAME = "Reely"
 SITE_URL = "https://YOUR-DOMAIN.com"      # domain milne ke baad yahan badlo
 EMAIL = "your-email@example.com"           # apna email likho
@@ -22,28 +26,17 @@ ICONS = {
 "Moon":'<svg class="mn" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>',
 "X":'<svg viewBox="0 0 24 24" width="20" height="20"><path d="M4 4l16 16M20 4L4 20" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>'}
 
-# id, title, year, industry, genres, director, summary(apne words), verdict
-MOVIES = [
-("inception","Inception",2010,"Hollywood",["Action","Sci-Fi"],"Christopher Nolan","Ek chor sapno ke andar ghus kar logon ke vichar churata hai. Is baar use vichar churane nahi, daalne ka kaam milta hai. Kahani parat-dar-parat sapno mein chalti hai.","Dimaag lagane wali, lekin dekhne mein poori tarah romanchak film."),
-("the-dark-knight","The Dark Knight",2008,"Hollywood",["Action","Crime"],"Christopher Nolan","Batman, Gotham ka police wala aur ek naya district attorney milkar shehar ke apradh ko todne nikalte hain, tabhi Joker aakar sab kuch ulat deta hai.","Superhero film se zyada ek gambhir crime thriller. Joker ka kirdaar yaadgaar hai."),
-("mad-max-fury-road","Mad Max: Fury Road",2015,"Hollywood",["Action"],"George Miller","Registan mein ek zalim shasak se bhaagti auraton ko max aur furiosa bachate hain. Poori film ek lambi car chase jaisi hai.","Shuru se aakhir tak tez raftaar action, kam dialogue aur zabardast stunts."),
-("get-out","Get Out",2017,"Hollywood",["Horror","Thriller"],"Jordan Peele","Ek naujawan apni girlfriend ke parivar se milne jaata hai aur dheere-dheere samajhta hai ki wahan kuch gadbad hai.","Darr aur samajik tippani ka behtareen mel. Ant tak utsukta bani rehti hai."),
-("the-conjuring","The Conjuring",2013,"Hollywood",["Horror"],"James Wan","Ek parivar ko apne naye ghar mein ajeeb ghatnayein hoti hain aur wo do paranormal investigators se madad maangte hain.","Seedhi-saadi bhoot-pret kahani jo mahaul ke dum par daraati hai."),
-("hereditary","Hereditary",2018,"Hollywood",["Horror"],"Ari Aster","Ek parivar apni dadi ke guzarne ke baad ek ke baad ek bhayanak ghatnaon ka saamna karta hai.","Dheemi lekin bechain kar dene wali. Kamzor dil walon ke liye nahi."),
-("titanic","Titanic",1997,"Hollywood",["Romance","Drama"],"James Cameron","Ek jahaaz ke pehle safar mein alag-alag tabqe ke do log pyaar kar baithte hain, jabki jahaaz ka anjaam kareeb aa raha hota hai.","Bade star-scale par bani amar prem kahani."),
-("the-notebook","The Notebook",2004,"Hollywood",["Romance","Drama"],"Nick Cassavetes","Ek buzurg ek mahila ko ek purani prem kahani padh kar sunata hai jo do jawan logon ke pyaar aur doori ki hai.","Bhavuk romantic drama, rone ke liye tissue paas rakhein."),
-("dilwale-dulhania-le-jayenge","Dilwale Dulhania Le Jayenge",1995,"Bollywood",["Romance"],"Aditya Chopra","Europe ki yatra par do yuva mil kar pyaar kar baithte hain, lekin ladki ka parivar use pehle se kisi aur ke saath tay kar chuka hai.","Bollywood romance ka sabse bada naam, aaj bhi taaza lagti hai."),
-("jab-we-met","Jab We Met",2007,"Bollywood",["Romance","Comedy"],"Imtiaz Ali","Ek udaas business-man train mein ek bolti hui ladki se milta hai aur uski zindagi badalne lagti hai.","Halki-phulki, hansi aur dil ko chhoone wali romantic comedy."),
-("3-idiots","3 Idiots",2009,"Bollywood",["Comedy","Drama"],"Rajkumar Hirani","Engineering college ke teen doston ki kahani, jo padhai ke dabav aur asli sapno ke beech sawal uthati hai.","Hansate hansate zaroori baat kehne wali film."),
-("dangal","Dangal",2016,"Bollywood",["Drama","Sports"],"Nitesh Tiwari","Ek purva pehalwan apni betiyon ko kushti ke champion banane ke liye kadi mehnat karwata hai.","Prerak, bhavuk aur dekhne layak."),
-("tumbbad","Tumbbad",2018,"Bollywood",["Horror","Fantasy"],"Rahi Anil Barve","Ek gaon ke purane khazane ki laalach ek aadmi ko ek khatarnak devta tak le jaati hai.","Alag mizaaj ki Hindi horror, drishyon aur vatavaran mein bahut dum."),
-("war","War",2019,"Bollywood",["Action","Thriller"],"Siddharth Anand","Ek agent ko apne hi guru ko pakadne ka kaam milta hai, jo ab baaghi ban chuka hai.","Stylish stunts aur videshi locations wali masala action film."),
-("andhadhun","Andhadhun",2018,"Bollywood",["Thriller","Comedy"],"Sriram Raghavan","Ek pianist jo khud ko andha dikhata hai, ek murder ka gawah ban jaata hai.","Mod-dar-mod wali dark comedy thriller."),
-("gangs-of-wasseypur","Gangs of Wasseypur",2012,"Bollywood",["Action","Crime"],"Anurag Kashyap","Dhanbad ke koyla maafia ke teen peedhiyon ke dushmani ki lambi kahani.","Kachchi aur asli crime saga, bahut yaadgaar dialogue."),
-]
-# UPCOMING / OTT: yahan khud verified info daalo (official source se). Format: (title, date, platform_or_industry, short_note)
-UPCOMING = []
-OTT = []
+# Filmon ka data data.json mein hai (movies, upcoming, ott). Wahi file badlo, build.py nahi.
+_D = json.load(open("data.json", encoding="utf-8"))
+MOVIES = [tuple(m[k] for k in ("id","title","year","industry","genres","director","summary","verdict")) for m in _D["movies"]]
+UPCOMING = [tuple(x[k] for k in ("title","date","platform","note")) for x in _D["upcoming"]]
+OTT = [tuple(x[k] for k in ("title","date","platform","note")) for x in _D["ott"]]
+if OUT != ".":   # GitHub Actions mode: tayyar site OUT folder mein banegi
+    os.makedirs(OUT, exist_ok=True)
+    for _f in ["style.css","logo.png","favicon.png","og.png","ads.txt","CNAME",".nojekyll"]:
+        if os.path.exists(_f): shutil.copy(_f, OUT)
+    if os.path.isdir("img"): shutil.copytree("img", os.path.join(OUT,"img"), dirs_exist_ok=True)
+    OUT = os.path.abspath(OUT); os.chdir(OUT)
 
 CATS = [("top-movies","Top Movies","Sab behtareen filmein"),("horror","Horror","Darawni filmein"),("action","Action","Action filmein"),
  ("romance","Romance","Romantic filmein"),("hollywood","Hollywood","Hollywood filmein"),("bollywood","Bollywood","Bollywood filmein"),
@@ -52,8 +45,11 @@ HUES = [200,350,28,160,265,45,320,95]
 
 def e(s): return html.escape(str(s))
 def yt(t): return "https://www.youtube.com/results?search_query="+urllib.parse.quote(t+" official trailer")
+def has_img(m): return os.path.exists(os.path.join(SRC,"img","posters",m[0]+".webp"))
 def poster(m):
     h=HUES[sum(map(ord,m[0]))%len(HUES)]
+    if has_img(m):
+        return f'<div class="poster has-img" style="--h:{h}"><img src="{IMG_BASE}img/posters/{m[0]}.webp" alt="{e(m[1])} ({m[2]}) poster" width="400" height="600" loading="lazy" decoding="async"><i class="tag">{e(m[4][0])}</i></div>'
     return f'<div class="poster" style="--h:{h}"><i class="tag">{e(m[4][0])}</i><span>{e(m[1])}</span><small>{m[2]}</small></div>'
 def card(m):
     return f'<a class="card" href="movie-{m[0]}.html">{poster(m)}<b>{e(m[1])}</b><em>{e(m[3])} &middot; {e(", ".join(m[4]))}</em></a>'
@@ -90,11 +86,12 @@ def layout(title, desc, body, fname, ld=""):
 <p><a href="about.html">About Us</a> <a href="contact.html">Contact Us</a> <a href="privacy-policy.html">Privacy Policy</a> <a href="disclaimer.html">Disclaimer</a> <a href="terms.html">Terms</a> <a href="#" id="ck-open">Cookie settings</a> <a href="feed.xml">RSS</a></p></div></footer>{BANNER}</body></html>'''
 
 SITEJS = r"""
+let IDX=null;const IMGB='__IMGB__';const loadIdx=()=>IDX?Promise.resolve(IDX):fetch('search.json').then(r=>r.json()).then(d=>(IDX=d));
 const io=new IntersectionObserver(es=>es.forEach(x=>{if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target)}}),{threshold:.1});
 document.querySelectorAll('.card,.film,.tile').forEach((el,i)=>{el.classList.add('rv');el.style.transitionDelay=(i%6)*60+'ms';io.observe(el)});
 const hd=document.querySelector('header');addEventListener('scroll',()=>hd.classList.toggle('sm',scrollY>30),{passive:true});
 const q=document.getElementById('q'),box=document.getElementById('res');
-if(q){q.addEventListener('input',()=>{const v=q.value.trim().toLowerCase();if(!v){box.innerHTML='';return}
+if(q){q.addEventListener('focus',loadIdx);q.addEventListener('input',()=>{const v=q.value.trim().toLowerCase();if(!v){box.innerHTML='';return}if(!IDX){loadIdx().then(()=>q.dispatchEvent(new Event('input')));return}
 const r=IDX.filter(m=>(m.t+' '+m.g+' '+m.i).toLowerCase().includes(v)).slice(0,6);
 box.innerHTML=r.length?r.map(m=>'<a href="movie-'+m.id+'.html"><b>'+m.t+'</b> <small>'+m.y+' &middot; '+m.i+'</small></a>').join(''):'<a>Kuch nahi mila</a>'})}
 const ck=document.getElementById('ck');
@@ -113,9 +110,9 @@ function wui(){const a=wget(),c=document.getElementById('wlc');if(c)c.textConten
 document.querySelectorAll('.wlb').forEach(b=>{const on=a.includes(b.dataset.id);b.classList.toggle('on',on);b.textContent=on?'Watchlist mein hai':'Baad mein dekhunga';b.setAttribute('aria-pressed',on)})}
 document.querySelectorAll('.wlb').forEach(b=>b.onclick=()=>{const a=wget(),i=a.indexOf(b.dataset.id);i<0?a.push(b.dataset.id):a.splice(i,1);wset(a)});
 const H=[200,350,28,160,265,45,320,95],wg=document.getElementById('wl-grid');
-function wrender(){if(!wg)return;const ms=wget().map(id=>IDX.find(m=>m.id===id)).filter(Boolean);
+function wrender(){if(!wg)return;if(!IDX){loadIdx().then(wrender);return}const ms=wget().map(id=>IDX.find(m=>m.id===id)).filter(Boolean);
 wg.innerHTML=ms.map(m=>{const h=H[[...m.id].reduce((s,c)=>s+c.charCodeAt(0),0)%8],g=m.g.split(' ')[0];
-return '<div><a class="card" href="movie-'+m.id+'.html"><div class="poster" style="--h:'+h+'"><i class="tag">'+g+'</i><span>'+m.t+'</span><small>'+m.y+'</small></div><b>'+m.t+'</b><em>'+m.i+'</em></a><button class="rm" type="button" data-id="'+m.id+'">Hatayein</button></div>'}).join('');
+return '<div><a class="card" href="movie-'+m.id+'.html"><div class="poster'+(m.p?' has-img':'')+'" style="--h:'+h+'">'+(m.p?'<img src="'+IMGB+'img/posters/'+m.id+'.webp" alt="" width="400" height="600" loading="lazy">':'')+'<i class="tag">'+g+'</i><span>'+m.t+'</span><small>'+m.y+'</small></div><b>'+m.t+'</b><em>'+m.i+'</em></a><button class="rm" type="button" data-id="'+m.id+'">Hatayein</button></div>'}).join('');
 document.getElementById('wl-empty').hidden=ms.length>0;
 wg.querySelectorAll('.rm').forEach(b=>b.onclick=()=>{wset(wget().filter(x=>x!==b.dataset.id));wrender()})}
 wui();wrender();
@@ -162,16 +159,25 @@ home += section("Hollywood", [m for m in MOVIES if m[3]=="Hollywood"], "hollywoo
 home += '<section class="tiles"><a class="tile t1" href="upcoming.html"><b>Upcoming</b><span>Aane wali filmein</span></a><a class="tile t2" href="ott.html"><b>OTT Release</b><span>OTT par aa rahi filmein</span></a></section>'
 pages["index.html"]=(f"{SITE_NAME} - Movie Reviews, Upcoming aur OTT Release","Hindi mein top movies, horror, action, romance, Hollywood, Bollywood, upcoming aur OTT release ki jaankari.",home)
 
+def pagerhtml(slug,n,total):
+    if total<2: return ""
+    out="".join(f'<span aria-current="page">{p}</span>' if p==n else f'<a href="{slug}{"" if p==1 else "-"+str(p)}.html">{p}</a>' for p in range(1,total+1))
+    return f'<div class="pager" aria-label="Pages">{out}</div>'
 for slug,name,sub in CATS:
     if slug in filters:
         ms=[m for m in MOVIES if filters[slug](m)]
-        body=f'<h1>{e(name)} Movies</h1><p class="lead">{sub}. Har film ka chhota review aur kahani ka saar.</p>{adslot("top")}<div class="grid">'+"".join(card(m) for m in ms)+'</div>'+adslot("bottom")
+        chunks=[ms[k:k+PER] for k in range(0,len(ms),PER)] or [[]]
+        for n,ch in enumerate(chunks,1):
+            fn = f"{slug}.html" if n==1 else f"{slug}-{n}.html"
+            body=f'<h1>{e(name if "Movies" in name else name+" Movies")}</h1><p class="lead">{sub}. Har film ka chhota review aur kahani ka saar.</p>{adslot("top")}<div class="grid">'+"".join(card(m) for m in ch)+'</div>'+pagerhtml(slug,n,len(chunks))+adslot("bottom")
+            pages[fn]=(f"{name if 'Movies' in name else name+' Movies'}{'' if n==1 else ' - Page '+str(n)} - {SITE_NAME}",f"{name} filmon ki list aur review.",body)
+        continue
     else:
         items = UPCOMING if slug=="upcoming" else OTT
         rows = "".join(f'<tr><td>{e(i[0])}</td><td>{e(i[1])}</td><td>{e(i[2])}</td><td>{e(i[3])}</td></tr>' for i in items)
         tbl = f'<div class="scroll"><table><tr><th>Film</th><th>Date</th><th>Platform / Industry</th><th>Note</th></tr>{rows}</table></div>' if items else '<p class="empty">Is list ko jald hi official sources ke hisaab se update kiya jayega.</p>'
         body=f'<h1>{e(name)}</h1><p class="lead">{sub}. Dates badal sakti hain, isliye official ghoshna zaroor dekhein.</p>{tbl}{adslot("bottom") if items else ""}'
-    pages[f"{slug}.html"]=(f"{name} Movies - {SITE_NAME}",f"{name} filmon ki list aur review.",body)
+    pages[f"{slug}.html"]=(f"{name if 'Movies' in name else name+' Movies'} - {SITE_NAME}",f"{name} filmon ki list aur review.",body)
 
 for m in MOVIES:
     rel=[x for x in MOVIES if x[0]!=m[0] and (x[3]==m[3] or set(x[4])&set(m[4]))][:4]
@@ -194,6 +200,9 @@ pages["404.html"]=("Page nahi mila - "+SITE_NAME,"404","<h1>Page nahi mila</h1><
 CRUMBS = {}
 for slug,name,sub in CATS: CRUMBS[f"{slug}.html"] = [("Home","index.html"),(name,None)]
 BYFILE = {f"movie-{m[0]}.html":m for m in MOVIES}
+for f in list(pages):
+    mm = re.match(r"^(.+)-(\d+)\.html$", f)
+    if mm and f"{mm.group(1)}.html" in CRUMBS: CRUMBS[f] = [("Home","index.html"),(CRUMBS[f"{mm.group(1)}.html"][1][0],f"{mm.group(1)}.html"),("Page "+mm.group(2),None)]
 for f,m in BYFILE.items(): CRUMBS[f] = [("Home","index.html"),(m[3],m[3].lower()+".html"),(m[1],None)]
 def jsonld(f, cr):
     out = []
@@ -213,8 +222,9 @@ for f,(t,d,b) in pages.items():
 items = "".join(f"<item><title>{e(m[1])} ({m[2]}) Review</title><link>{SITE_URL}/movie-{m[0]}.html</link><guid>{SITE_URL}/movie-{m[0]}.html</guid><description>{e(m[6])}</description></item>" for m in MOVIES)
 open("feed.xml","w",encoding="utf-8").write(f'<?xml version="1.0" encoding="UTF-8"?><rss version="2.0"><channel><title>{e(SITE_NAME)}</title><link>{SITE_URL}/</link><description>Hindi mein movie reviews, upcoming aur OTT release.</description><language>hi</language>{items}</channel></rss>')
 
-idx=json.dumps([{"id":m[0],"t":m[1],"y":m[2],"i":m[3],"g":" ".join(m[4])} for m in MOVIES],ensure_ascii=False)
-open("site.js","w",encoding="utf-8").write("const IDX="+idx+";\n"+SITEJS)
+idx=json.dumps([{"id":m[0],"t":m[1],"y":m[2],"i":m[3],"g":" ".join(m[4]),"p":int(has_img(m))} for m in MOVIES],ensure_ascii=False,separators=(",",":"))
+open("search.json","w",encoding="utf-8").write(idx)
+open("site.js","w",encoding="utf-8").write(SITEJS.replace("__IMGB__",IMG_BASE))
 open("sitemap.xml","w").write('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'+"".join(f"<url><loc>{SITE_URL}/{f}</loc></url>" for f in pages if f not in ("404.html","watchlist.html"))+"</urlset>")
 open("robots.txt","w").write(f"User-agent: *\nAllow: /\nSitemap: {SITE_URL}/sitemap.xml\n")
 print(len(pages),"pages ban gaye")
