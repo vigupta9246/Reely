@@ -30,3 +30,9 @@ footer{background:var(--deep);color:#b9c8d3;padding:24px 0;font-size:.9rem}foote
 nav{display:none;width:100%;padding-bottom:10px}#mn:checked~nav{display:flex;flex-direction:column}
 .film{grid-template-columns:1fr}.film .poster{max-width:220px}body{font-size:17px}}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+.more{position:relative}.more summary{list-style:none;cursor:pointer;color:#dbe6ee;padding:6px 10px;border-radius:6px;font:500 .95rem "Bricolage Grotesque",system-ui,sans-serif}
+.more summary::-webkit-details-marker{display:none}.more summary::after{content:" \25BE"}
+.more summary:hover,.more[open] summary{background:#1d4558;color:#fff}
+.more div{position:absolute;right:0;top:100%;min-width:160px;background:var(--deep);border:1px solid #2c5468;border-radius:8px;padding:6px;display:flex;flex-direction:column;box-shadow:0 8px 20px rgba(0,0,0,.25)}
+@media(max-width:700px){.more div{position:static;border:0;box-shadow:none;padding:0 0 0 12px}}

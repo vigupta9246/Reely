@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # Run: python build.py  -> regenerates all HTML pages. Edit SITE settings and MOVIES/UPCOMING/OTT below.
 import os, html, urllib.parse
-SITE_NAME = "Cine Duniya"
+SITE_NAME = "Reely"
 SITE_URL = "https://YOUR-DOMAIN.com"      # domain milne ke baad yahan badlo
 EMAIL = "your-email@example.com"           # apna email likho
 ADSENSE = ""                               # e.g. "ca-pub-1234567890123456" (approval ke baad)
@@ -45,7 +45,10 @@ def card(m):
 
 def layout(title, desc, body, fname):
     ad = f'<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={ADSENSE}" crossorigin="anonymous"></script>' if ADSENSE else '<!-- AdSense code yahan aayega (ADSENSE variable bharo) -->'
-    nav = "".join(f'<a href="{c[0]}.html">{c[1]}</a>' for c in CATS)
+    names = {c[0]:c[1] for c in CATS}
+    main_nav = "".join(f'<a href="{k}.html">{names[k]}</a>' for k in ["top-movies","hollywood","bollywood","upcoming","ott"])
+    more = "".join(f'<a href="{k}.html">{names[k]}</a>' for k in ["horror","action","romance"])
+    nav = main_nav + f'<details class="more"><summary>Aur Genres</summary><div>{more}</div></details>'
     return f'''<!DOCTYPE html>
 <html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{e(title)}</title><meta name="description" content="{e(desc)}">
