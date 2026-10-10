@@ -28,7 +28,7 @@ ICONS = {
 
 # Filmon ka data data.json mein hai (movies, upcoming, ott). Wahi file badlo, build.py nahi.
 _D = json.load(open("data.json", encoding="utf-8"))
-MOVIES = [tuple(m[k] for k in ("id","title","year","industry","genres","director","summary","verdict")) for m in _D["movies"]]
+MOVIES = [tuple(m[k] for k in ("id","title","year","industry","genres","director","summary","verdict","cast","runtime","facts","why","who","caution")) for m in _D["movies"]]
 UPCOMING = [tuple(x[k] for k in ("title","date","platform","note")) for x in _D["upcoming"]]
 OTT = [tuple(x[k] for k in ("title","date","platform","note")) for x in _D["ott"]]
 if OUT != ".":   # GitHub Actions mode: tayyar site OUT folder mein banegi
@@ -61,13 +61,13 @@ def layout(title, desc, body, fname, ld=""):
     main_nav = "".join(f'<a href="{k}.html">{names[k]}</a>' for k in ["top-movies","hollywood","bollywood","upcoming","ott"])
     more = "".join(f'<a href="{k}.html">{names[k]}</a>' for k in ["horror","action","romance"])
     nav = main_nav + f'<details class="more"><summary>Aur Genres</summary><div>{more}</div></details>'
-    rob = '<meta name="robots" content="noindex">' if fname=="watchlist.html" else ""
+    rob = '<meta name="robots" content="noindex">' if fname=="watchlist.html" else '<meta name="robots" content="max-image-preview:large"><meta name="theme-color" content="#010103">'
     hero = HERO if fname=="index.html" else ""
     url = SITE_URL + "/" if fname=="index.html" else f"{SITE_URL}/{fname}"
     otype = "video.movie" if fname.startswith("movie-") else "website"
     soc = "".join(f'<a href="{u}" target="_blank" rel="noopener" aria-label="{n}">{ICONS[n]}</a>' for n,u in SOCIAL.items() if u)
     return f'''<!DOCTYPE html>
-<html lang="hi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="hi-Latn"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <script>try{{document.documentElement.dataset.theme=localStorage.getItem('theme')||'dark'}}catch(e){{document.documentElement.dataset.theme='dark'}}</script>{rob}
 <title>{e(title)}</title><meta name="description" content="{e(desc)}">
 <link rel="canonical" href="{url}">
@@ -157,8 +157,18 @@ home += adslot("mid")
 home += section("Bollywood", [m for m in MOVIES if m[3]=="Bollywood"], "bollywood.html")
 home += section("Hollywood", [m for m in MOVIES if m[3]=="Hollywood"], "hollywood.html")
 home += '<section class="tiles"><a class="tile t1" href="upcoming.html"><b>Upcoming</b><span>Aane wali filmein</span></a><a class="tile t2" href="ott.html"><b>OTT Release</b><span>OTT par aa rahi filmein</span></a></section>'
+home += '<section class="prose"><h2>Reely par aapko kya milega</h2><p>Reely ek Hindi movie guide hai jahan Hollywood aur Bollywood ki filmon ke saaf, seedhe review milte hain. Har film ke page par kahani ka saar (bina spoiler), cast, samay, hamari raay aur aksar puche jaane wale sawal diye gaye hain.</p><p>Hum piracy ya download links ko badhava nahi dete. Hamara maqsad hai ki dekhne se pehle aap jaan sakein ki film aapke mood ke layak hai ya nahi. Upcoming aur OTT release ki jaankari bhi official source se hi update ki jati hai.</p></section>'
 pages["index.html"]=(f"{SITE_NAME} - Movie Reviews, Upcoming aur OTT Release","Hindi mein top movies, horror, action, romance, Hollywood, Bollywood, upcoming aur OTT release ki jaankari.",home)
 
+CAT_INTRO = {
+"top-movies":"Is list mein hamari pasand ki sabse behtareen filmein hain, jo kahani, abhinay aur nirdeshan ke hisaab se chuni gayi hain. Har film ke saath chhota review, kahani ka saar aur kyun dekhein wali raay di gayi hai, taaki aap sahi film jaldi chun sakein. Nayi filmein judne par ye list badalti rehti hai.",
+"horror":"Horror filmein dekhne ka maza alag hota hai, par har film har kisi ke liye nahi hoti. Yahan bhoot-pret wali classic filmon se lekar dheemi aur dimaagi horror tak ka mel hai. Har film ke review mein bataya gaya hai ki darr kis tarah ka hai, taaki aap apni pasand ke hisaab se chun sakein.",
+"action":"Action filmon mein tez raftaar stunts, tikhi ladaiyan aur bade pamane ki kahaniyan milti hain. Is section mein Hollywood aur Bollywood dono ki action filmein hain. Har review mein hum batate hain ki action asli aur dumdaar hai ya sirf dikhave ka, aur kahani kitni majboot hai.",
+"romance":"Romantic filmein dil ko chhoo jaati hain, chahe wo purani classic hon ya halki-phulki romantic comedy. Yahan bhavuk prem kahaniyan aur masti bhare romance dono milenge, saath mein ye bhi ki film kis mood mein dekhne layak hai.",
+"hollywood":"Hollywood ki ye filmein duniya bhar mein pasand ki gayi hain. Yahan action, horror aur romance ki jaani-maani filmon ke review Hindi mein milte hain, jinme kahani ka saar, cast, samay aur hamari raay shamil hai.",
+"bollywood":"Bollywood ki ye filmein parivar ke saath dekhne layak yaadgaar kahaniyan lekar aati hain, purani classic romance se lekar naye zamane ki thriller aur drama tak. Har review mein cast, nirdeshak aur film ka maza batane wali raay di gayi hai.",
+"upcoming":"Aane wali filmon ki jaankari yahan milti hai. Release date aur khabrein badalti rehti hain, isliye hum list sirf official ghoshna ke baad hi update karte hain. Is page ko bookmark kar lein, taaki naye release ka pata sabse pehle chale.",
+"ott":"Kaun si film kis OTT platform par aa rahi hai, ye jaanne ke liye is page ko dekhein. Platform par release date badal sakti hai, isliye har entry ke saath official source ke hisaab se date likhi jati hai."}
 def pagerhtml(slug,n,total):
     if total<2: return ""
     out="".join(f'<span aria-current="page">{p}</span>' if p==n else f'<a href="{slug}{"" if p==1 else "-"+str(p)}.html">{p}</a>' for p in range(1,total+1))
@@ -169,24 +179,39 @@ for slug,name,sub in CATS:
         chunks=[ms[k:k+PER] for k in range(0,len(ms),PER)] or [[]]
         for n,ch in enumerate(chunks,1):
             fn = f"{slug}.html" if n==1 else f"{slug}-{n}.html"
-            body=f'<h1>{e(name if "Movies" in name else name+" Movies")}</h1><p class="lead">{sub}. Har film ka chhota review aur kahani ka saar.</p>{adslot("top")}<div class="grid">'+"".join(card(m) for m in ch)+'</div>'+pagerhtml(slug,n,len(chunks))+adslot("bottom")
+            body=f'<h1>{e(name if "Movies" in name else name+" Movies")}</h1><p class="lead">{sub}. Har film ka chhota review aur kahani ka saar.</p>{adslot("top")}<div class="grid">'+"".join(card(m) for m in ch)+'</div>'+pagerhtml(slug,n,len(chunks))+(f'<div class="prose"><p>{CAT_INTRO[slug]}</p></div>' if n==1 else '')+adslot("bottom")
             pages[fn]=(f"{name if 'Movies' in name else name+' Movies'}{'' if n==1 else ' - Page '+str(n)} - {SITE_NAME}",f"{name} filmon ki list aur review.",body)
         continue
     else:
         items = UPCOMING if slug=="upcoming" else OTT
         rows = "".join(f'<tr><td>{e(i[0])}</td><td>{e(i[1])}</td><td>{e(i[2])}</td><td>{e(i[3])}</td></tr>' for i in items)
         tbl = f'<div class="scroll"><table><tr><th>Film</th><th>Date</th><th>Platform / Industry</th><th>Note</th></tr>{rows}</table></div>' if items else '<p class="empty">Is list ko jald hi official sources ke hisaab se update kiya jayega.</p>'
-        body=f'<h1>{e(name)}</h1><p class="lead">{sub}. Dates badal sakti hain, isliye official ghoshna zaroor dekhein.</p>{tbl}{adslot("bottom") if items else ""}'
+        body=f'<h1>{e(name)}</h1><p class="lead">{sub}. Dates badal sakti hain, isliye official ghoshna zaroor dekhein.</p>{tbl}<div class="prose"><p>{CAT_INTRO[slug]}</p></div>{adslot("bottom") if items else ""}'
     pages[f"{slug}.html"]=(f"{name if 'Movies' in name else name+' Movies'} - {SITE_NAME}",f"{name} filmon ki list aur review.",body)
 
+GENRE_PAGE={"Action":"action.html","Horror":"horror.html","Romance":"romance.html"}
+def hrs(n): return f"{n//60} ghanta {n%60} minute" if n%60 else f"{n//60} ghanta"
+def glinks(m): return ", ".join(f'<a href="{GENRE_PAGE[g]}">{e(g)}</a>' if g in GENRE_PAGE else e(g) for g in m[4])
 for m in MOVIES:
     rel=[x for x in MOVIES if x[0]!=m[0] and (x[3]==m[3] or set(x[4])&set(m[4]))][:4]
-    body=f'''<article class="film"><div>{poster(m)}</div><div><h1>{e(m[1])} ({m[2]})</h1>
-<p class="meta">{e(m[3])} &middot; {e(", ".join(m[4]))} &middot; Nirdeshak: {e(m[5])}</p>
-<h2>Kahani ka saar</h2><p>{e(m[6])}</p><h2>Hamari raay</h2><p>{e(m[7])}</p>
-<p><a class="btn" href="{yt(m[1]+" "+str(m[2]))}" target="_blank" rel="noopener">YouTube par trailer dekhein</a><button class="btn wlb" type="button" data-id="{m[0]}">Baad mein dekhunga</button></p>{SHARE}</div></article>{adslot("mid")}
-<section><h2>Ye bhi dekhein</h2><div class="grid">{"".join(card(x) for x in rel)}</div></section>{COMMENTS_HTML}{adslot("bottom")}'''
-    pages[f"movie-{m[0]}.html"]=(f"{m[1]} ({m[2]}) Review, Kahani aur Jaankari - {SITE_NAME}",m[6][:150],body)
+    same=[x for x in MOVIES if x[0]!=m[0] and x[5]==m[5]]
+    cast=", ".join(m[8])
+    qf=f'<dl class="qf"><dt>Release</dt><dd>{m[2]}</dd><dt>Industry</dt><dd><a href="{m[3].lower()}.html">{e(m[3])}</a></dd><dt>Genre</dt><dd>{glinks(m)}</dd><dt>Nirdeshak</dt><dd>{e(m[5])}</dd><dt>Mukhya kalakar</dt><dd>{e(", ".join(m[8][:4]))}</dd><dt>Samay</dt><dd>Lagbhag {m[9]} minute</dd></dl>'
+    facts="".join(f"<li>{e(x)}</li>" for x in m[10])
+    faq=[(f"{m[1]} kis genre ki film hai?",f"{m[1]} ek {', '.join(m[4])} film hai, jo {m[3]} ki hai aur {m[2]} mein aayi."),(f"{m[1]} ka nirdeshak kaun hai?",f"Is film ko {m[5]} ne nirdeshit kiya hai."),(f"{m[1]} mein mukhya kalakar kaun hain?",f"Film mein {cast} jaise kalakar hain."),(f"{m[1]} kitni lambi hai?",f"Film lagbhag {m[9]} minute ({hrs(m[9])}) ki hai."),(f"{m[1]} kisko dekhni chahiye?",f"{m[12]} {m[13]}")]
+    faqh="".join(f"<h3>{e(q)}</h3><p>{e(a)}</p>" for q,a in faq)
+    sd = f'<p>{e(m[5])} ki aur filmein: '+", ".join(f'<a href="movie-{x[0]}.html">{e(x[1])}</a>' for x in same)+'.</p>' if same else ""
+    body=f'''<article class="film"><div>{poster(m)}</div><div><h1>{e(m[1])} ({m[2]})</h1><p class="meta">{e(m[3])} &middot; {e(", ".join(m[4]))}</p>{qf}
+<p><a class="btn" href="{yt(m[1]+" "+str(m[2]))}" target="_blank" rel="noopener">YouTube par trailer dekhein</a><button class="btn wlb" type="button" data-id="{m[0]}">Baad mein dekhunga</button></p>{SHARE}</div></article>
+<div class="prose"><h2>{e(m[1])} ki kahani (bina spoiler)</h2><p>{e(m[6])}</p>
+<h2>Hamari raay</h2><p>{e(m[7])}</p><h3>Kyun dekhein</h3><p>{e(m[11])}</p><h3>Kiske liye hai</h3><p>{e(m[12])}</p><h3>Dhyan dein</h3><p>{e(m[13])}</p>
+<h2>Mukhya baatein</h2><ul>{facts}</ul>{sd}
+<h2>Aksar puche jaane wale sawal</h2>{faqh}</div>{adslot("mid")}
+<section><h2>{e(m[1])} jaisi aur filmein</h2><div class="grid">{"".join(card(x) for x in rel)}</div></section>{COMMENTS_HTML}{adslot("bottom")}'''
+    t = f"{m[1]} ({m[2]}) Review: Kahani, Cast aur Verdict | {SITE_NAME}"
+    if len(t)>66: t = f"{m[1]} ({m[2]}) Review aur Cast | {SITE_NAME}"
+    d = f"{m[1]} ({m[2]}) ka review: kahani, cast ({', '.join(m[8][:3])}), samay aur hamara verdict. {m[3]} ki {m[4][0]} film."
+    pages[f"movie-{m[0]}.html"]=(t,d[:160],body)
 
 L=lambda *ps:"".join(f"<p>{p}</p>" for p in ps)
 pages["about.html"]=("About Us - "+SITE_NAME,"Hamare baare mein.",f"<h1>About Us</h1>"+L(f"{SITE_NAME} ek movie information website hai jahan hum Hollywood aur Bollywood ki filmon ka review, kahani ka saar, upcoming aur OTT release ki jaankari Hindi mein dete hain.","Hamara maqsad hai ki dekhne wale ko sahi film chunne mein madad mile. Har review hamari apni raay par aadharit hota hai.","Hum piracy ka samarthan nahi karte aur kisi film ko download karne ka link nahi dete."))
@@ -206,12 +231,12 @@ for f in list(pages):
 for f,m in BYFILE.items(): CRUMBS[f] = [("Home","index.html"),(m[3],m[3].lower()+".html"),(m[1],None)]
 def jsonld(f, cr):
     out = []
-    if f=="index.html": out.append({"@context":"https://schema.org","@type":"WebSite","name":SITE_NAME,"url":SITE_URL+"/","inLanguage":"hi"})
+    if f=="index.html": out.append({"@context":"https://schema.org","@type":"WebSite","name":SITE_NAME,"url":SITE_URL+"/","inLanguage":"hi-Latn"})
     if cr:
         out.append({"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":n+1,"name":l,"item":SITE_URL+"/"+(h or f)} for n,(l,h) in enumerate(cr)]})
     if f in BYFILE:
         m = BYFILE[f]
-        out.append({"@context":"https://schema.org","@type":"Movie","name":m[1],"description":m[6],"dateCreated":str(m[2]),"genre":m[4],"director":{"@type":"Person","name":m[5]},"url":f"{SITE_URL}/{f}"})
+        out.append({"@context":"https://schema.org","@type":"Movie","name":m[1],"description":m[6],"dateCreated":str(m[2]),"genre":m[4],"director":{"@type":"Person","name":m[5]},"actor":[{"@type":"Person","name":n} for n in m[8]],"duration":f"PT{m[9]}M","url":f"{SITE_URL}/{f}"})
     return "".join('<script type="application/ld+json">'+json.dumps(o,ensure_ascii=False).replace("</","<\\/")+"</script>" for o in out)
 for f,(t,d,b) in pages.items():
     cr = CRUMBS.get(f)
